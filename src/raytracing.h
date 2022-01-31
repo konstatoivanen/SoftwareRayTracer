@@ -9,8 +9,8 @@ namespace sr::raytracing
     {
         math::float3 position = math::SR_FLOAT3_ZERO;
         math::float3 normal = math::SR_FLOAT3_ZERO;
-        math::colorRGB albedo = math::SR_FLOAT3_ZERO;
-        math::colorRGB emission = math::SR_FLOAT3_ZERO;
+        math::float3 albedo = math::SR_FLOAT3_ZERO;
+        math::float3 emission = math::SR_FLOAT3_ZERO;
         float roughness = 0.0f;
     };
 
@@ -35,13 +35,13 @@ namespace sr::raytracing
 
     bool ray_trace(const structs::mesh* mesh, const float* origin, const float* direction, surface* surf);
 
-    math::colorRGB ray_gather_ggx_recursive(const utilities::kdtree* tree, 
+    math::float3 ray_gather_ggx_recursive(const utilities::kdtree* tree,
         const float* view, 
         const surface* parent, 
         uint32_t samples,
         uint32_t bounces);
 
-    math::colorRGB ray_gather_random_recursive(const utilities::kdtree* tree,
+    math::float3 ray_gather_random_recursive(const utilities::kdtree* tree,
         const float* view,
         const surface* parent,
         uint32_t samples,
@@ -50,7 +50,7 @@ namespace sr::raytracing
 
     void sample_surface(const structs::mesh* mesh, const float* origin, const float* direction, const utilities::raycasthit* hit, surface* surf);
 
-    void store_pixel(unsigned char* pixels, uint32_t x, uint32_t y, uint32_t w, const math::colorRGB& color);
+    void store_pixel(unsigned char* pixels, uint32_t x, uint32_t y, uint32_t w, const math::float3& color);
 
     math::float4 get_origin_raydir(const raytracecontext* ctx, uint32_t x, uint32_t y);
 }

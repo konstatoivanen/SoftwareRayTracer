@@ -283,6 +283,23 @@ namespace sr::math
         return normalize(kernel);
     }
 
+    float linear_to_gamma(float value)
+    {
+        if (value <= 0.0F)
+            return 0.0F;
+        else if (value <= 0.0031308F)
+            return 12.92F * value;
+        else if (value < 1.0F)
+            return 1.055F * pow(value, 0.4166667F) - 0.055F;
+        else
+            return pow(value, 0.45454545F);
+    }
+
+    float3 linear_to_gamma(const float3& color)
+    {
+        return float3(linear_to_gamma(color.x), linear_to_gamma(color.y), linear_to_gamma(color.z));
+    }
+
     bool intersect_bounds(const bounds& bounds, const float* origin, const float* direction, float* outNear, float* outFar)
     {
         auto tmin = (bounds.bmin - float3(origin)) / float3(direction);

@@ -188,6 +188,9 @@
     <ClInclude Include="src\threadpool.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
     <None Include="res\config.cfg" />
     <None Include="res\cornell-box.mtl" />
   </ItemGroup>

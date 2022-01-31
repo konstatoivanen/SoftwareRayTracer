@@ -84,7 +84,6 @@ namespace sr::math
 
     typedef float4 quaternion;
     typedef float4 color;
-    typedef float3 colorRGB;
 
     constexpr float SR_FLOAT_PI = 3.14159274F;
     constexpr float SR_FLOAT_2PI = 2.0f * 3.14159274F;
@@ -121,16 +120,6 @@ namespace sr::math
     constexpr color SR_COLOR_CYAN = { 0.0f, 1.0f, 1.0f, 1.0f };
     constexpr color SR_COLOR_MAGENTA = { 1.0f, 0.0f, 1.0f, 1.0f };
     constexpr color SR_COLOR_YELLOW = { 1.0f, 1.0f, 0.0f, 1.0f };
-
-    constexpr colorRGB SR_COLOR_RGB_WHITE = { 1.0f, 1.0f, 1.0f };
-    constexpr colorRGB SR_COLOR_RGB_GRAY = { 0.5f, 0.5f, 0.5f };
-    constexpr colorRGB SR_COLOR_RGB_BLACK = { 0.0f, 0.0f, 0.0f };
-    constexpr colorRGB SR_COLOR_RGB_RED = { 1.0f, 0.0f, 0.0f };
-    constexpr colorRGB SR_COLOR_RGB_GREEN = { 0.0f, 1.0f, 0.0f};
-    constexpr colorRGB SR_COLOR_RGB_BLUE = { 0.0f, 0.0f, 1.0f };
-    constexpr colorRGB SR_COLOR_RGB_CYAN = { 0.0f, 1.0f, 1.0f };
-    constexpr colorRGB SR_COLOR_RGB_MAGENTA = { 1.0f, 0.0f, 1.0f };
-    constexpr colorRGB SR_COLOR_RGB_YELLOW = { 1.0f, 1.0f, 0.0f };
 
     constexpr float4x4 SR_FLOAT4X4_IDENTITY =
     {
@@ -184,6 +173,8 @@ namespace sr::math
     float2 hammersley(uint32_t i, uint32_t n);
     float3 importance_sample_ggx(const float2& Xi, const float3& N, float roughness);
     float3 random_direction(const float3& worldNormal, uint32_t index, float sampleCount, float dither);
+    float linear_to_gamma(float value);
+    float3 linear_to_gamma(const float3& color);
 
     bool intersect_bounds(const bounds& bounds, const float* origin, const float* direction, float* outNear, float* outFar);
 

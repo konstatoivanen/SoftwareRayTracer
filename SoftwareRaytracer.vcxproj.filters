@@ -73,5 +73,8 @@
     <None Include="res\cornell-box.mtl" />
     <None Include="res\cornell-box.mdl" />
     <None Include="res\config.cfg" />
+    <None Include=".gitignore" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

@@ -105,7 +105,7 @@ namespace sr::raytracing
         return true;
     }
 
-    colorRGB ray_gather_ggx_recursive(const kdtree* tree, const float* view, const surface* parent, uint32_t samples, uint32_t bounces)
+    float3 ray_gather_ggx_recursive(const kdtree* tree, const float* view, const surface* parent, uint32_t samples, uint32_t bounces)
     {
         auto N = parent->normal;
         auto V = float3(view) * -1.0f;
@@ -145,7 +145,7 @@ namespace sr::raytracing
         return color / weight;
     }
 
-    colorRGB ray_gather_random_recursive(const kdtree* tree, const float* view, const surface* parent, uint32_t samples, uint32_t bounces, float dither)
+    float3 ray_gather_random_recursive(const kdtree* tree, const float* view, const surface* parent, uint32_t samples, uint32_t bounces, float dither)
     {
         auto N = parent->normal;
         auto V = float3(view) * -1.0f;
@@ -215,11 +215,12 @@ namespace sr::raytracing
         surf->roughness = 0.95f;
     }
 
-    void store_pixel(unsigned char* pixels, uint32_t x, uint32_t y, uint32_t w, const colorRGB& color)
+    void store_pixel(unsigned char* pixels, uint32_t x, uint32_t y, uint32_t w, const float3& color)
     {
-        pixels[(y * w + x) * 4 + 0] = (unsigned char)sr::math::fmin(color.x * 255.0f, 255.0f);
-        pixels[(y * w + x) * 4 + 1] = (unsigned char)sr::math::fmin(color.y * 255.0f, 255.0f);
-        pixels[(y * w + x) * 4 + 2] = (unsigned char)sr::math::fmin(color.z * 255.0f, 255.0f);
+        auto gamma = linear_to_gamma(color);
+        pixels[(y * w + x) * 4 + 0] = (unsigned char)sr::math::fmin(gamma.x * 255.0f, 255.0f);
+        pixels[(y * w + x) * 4 + 1] = (unsigned char)sr::math::fmin(gamma.y * 255.0f, 255.0f);
+        pixels[(y * w + x) * 4 + 2] = (unsigned char)sr::math::fmin(gamma.z * 255.0f, 255.0f);
         pixels[(y * w + x) * 4 + 3] = 255;
     }
 

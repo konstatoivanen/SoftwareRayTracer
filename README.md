@@ -6,4 +6,6 @@ A simple C++ 17 software ray tracer.
 - Recursive GGX importance sampling.
 - Recursive random sampling.
 
+## Third Party
+- [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
 
