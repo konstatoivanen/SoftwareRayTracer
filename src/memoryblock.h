@@ -1,5 +1,6 @@
 #pragma once
 #include <exception>
+#include <iostream>
 
 namespace sr::utilities
 {

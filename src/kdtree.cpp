@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "kdtree.h"
 #include "math.h"
+#include <algorithm>
 
 // Sources: 
 // https://dcgi.fel.cvut.cz/home/havran/ARTICLES/cgf2011.pdf

@@ -2,6 +2,7 @@
 #include "fileio.h"
 #include <tinyobjloader/tiny_obj_loader.h>
 #include <filesystem>
+#include <fstream>
 
 namespace sr::utilities::fileio
 {

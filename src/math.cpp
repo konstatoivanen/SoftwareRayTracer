@@ -164,7 +164,7 @@ namespace sr::math
 
     float4x4 matrix_perspective(float fov, float aspect, float zNear, float zFar)
     {
-        const float tanHalfFovy = tan(fov * SR_FLOAT_DEG2RAD / 2.0f);
+        const float tanHalfFovy = (float)tan(fov * SR_FLOAT_DEG2RAD / 2.0f);
         float4x4 proj = SR_FLOAT4X4_ZERO;
         proj[0][0] = 1.0f / (aspect * tanHalfFovy);
         proj[1][1] = 1.0f / (tanHalfFovy);
@@ -249,13 +249,13 @@ namespace sr::math
         float a = roughness * roughness;
 
         float phi = 2.0f * 3.14159265f * Xi.x;
-        float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
-        float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+        float cosTheta = (float)sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+        float sinTheta = (float)sqrt(1.0f - cosTheta * cosTheta);
 
         // from spherical coordinates to cartesian coordinates
         float3 H;
-        H.x = cos(phi) * sinTheta;
-        H.y = sin(phi) * sinTheta;
+        H.x = (float)cos(phi) * sinTheta;
+        H.y = (float)sin(phi) * sinTheta;
         H.z = cosTheta;
 
         // from tangent-space vector to world-space sample vector
@@ -275,9 +275,9 @@ namespace sr::math
         auto latitude = asin(fiN * 2.0f - 1.0f);
 
         float3 kernel;
-        kernel.x = cos(latitude) * cos(longitude);
-        kernel.z = cos(latitude) * sin(longitude);
-        kernel.y = sin(latitude);
+        kernel.x = (float)cos(latitude) * (float)cos(longitude);
+        kernel.z = (float)cos(latitude) * (float)sin(longitude);
+        kernel.y = (float)sin(latitude);
         kernel = dot(worldNormal * -1.0f, kernel) < 0 ? kernel : kernel * -1.0f;
 
         return normalize(kernel);
@@ -290,9 +290,9 @@ namespace sr::math
         else if (value <= 0.0031308F)
             return 12.92F * value;
         else if (value < 1.0F)
-            return 1.055F * pow(value, 0.4166667F) - 0.055F;
+            return 1.055F * (float)pow(value, 0.4166667F) - 0.055F;
         else
-            return pow(value, 0.45454545F);
+            return (float)pow(value, 0.45454545F);
     }
 
     float3 linear_to_gamma(const float3& color)
