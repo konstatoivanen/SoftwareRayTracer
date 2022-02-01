@@ -57,6 +57,7 @@ namespace sr::utilities
             return false;
         }
 
+        // @TODO Nasty malloc per cast. Maybe implement a thread safe pool instead?
         memoryblock<stacknode> stack(1u + m_depth);
         auto stackSize = 1u;
         stack[0u] = { 0u, tmin, tmax };
