@@ -22,19 +22,21 @@ typedef std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration
 
 int main(int argc, char** argv)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) && defined(_WIN32)
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
     config cfg;
     if (fileio::load_config("res/config.cfg", &cfg) != 0)
     {
+        printf("Failed to load config at: res/config.cfg \n");
         return -1;
     }
 
     mesh mesh;
     if (fileio::load_mesh(cfg.meshPath.c_str(), &mesh, 0.01f) != 0)
     {
+        printf("Failed to load mesh at: %s \n", cfg.meshPath.c_str());
         return -1;
     }
 
@@ -50,51 +52,48 @@ int main(int argc, char** argv)
     ctx.bounces = cfg.bounces;
     ctx.width = cfg.width;
     ctx.height = cfg.height;
-    ctx.pixels = reinterpret_cast<unsigned char*>(calloc(4u * ctx.width * ctx.height, sizeof(char)));
+    ctx.pixels = reinterpret_cast<uint8_t*>(calloc(4u * ctx.width * ctx.height, sizeof(uint8_t)));
     ctx.tree = &tree;
     ctx.origin = float3(0.0f, 2.5f, 5.0f);
     ctx.invproj = matrix_inverse(matrix_perspective(60.0f, ctx.width / (float)ctx.height, 0.1f, 100.0f));
     ctx.invview = matrix_inverse(matrix_tr(ctx.origin, float3(0.0f, 180.0f, 0.0f)));
-    
-    auto threadPool = new sr::utilities::threadpool();
+
+    if ((ctx.job = get_ray_trace_job(cfg.mode)) == nullptr)
+    {
+        printf("Invalid job mode: %i", cfg.mode);
+        return -1;
+    }
+
+    auto threadPool = threadpool();
 
     printf("Queueing %i jobs. \n", (ctx.width / cfg.groupSize) * (ctx.height / cfg.groupSize));
 
     for (uint32_t x = 0u; x < ctx.width; x += cfg.groupSize)
     for (uint32_t y = 0u; y < ctx.height; y += cfg.groupSize)
     {
-        auto gw = (ctx.width - x) < cfg.groupSize ? (ctx.width - x) : cfg.groupSize;
-        auto gh = (ctx.height - y) < cfg.groupSize ? (ctx.height - y) : cfg.groupSize;
+        auto xmax = x + ((ctx.width - x) < cfg.groupSize ? (ctx.width - x) : cfg.groupSize);
+        auto ymax = y + ((ctx.height - y) < cfg.groupSize ? (ctx.height - y) : cfg.groupSize);
 
-        switch (cfg.mode)
-        {
-            case SR_TRACE_MODE_GGX:
-                threadPool->queue_job(std::bind(ray_trace_job_random, &ctx, x, y, gw, gh));
-                break;
-
-            case SR_TRACE_MODE_RANDOM:
-                threadPool->queue_job(std::bind(ray_trace_job_random, &ctx, x, y, gw, gh));
-                break;
-        }
+        // @TODO Not a big fan of std::bind, refactor this to not require it.
+        threadPool.queue_job(std::bind(ray_trace_warp, ctx, x, y, xmax, ymax));
     }
     
-    delete threadPool;
+    threadPool.wait_all(10ul);
 
     timestamp timeEnd = std::chrono::steady_clock::now();
-    auto elapsed = (timeEnd - timeStart).count();
 
-    printf("Tracing complete. Elapsed: %4.2f ms \n", elapsed * 1000.0f);
+    printf("Tracing complete. Elapsed: %4.2f ms \n", (timeEnd - timeStart).count() * 1000.0f);
 
-    auto filename = std::string("Screenshot0.bmp");
-    auto index = 0;
+    fileio::unload_mesh(&mesh);
 
-    while (std::filesystem::exists(filename))
+    auto filename = fileio::get_free_filename("Screenshot", ".bmp");
+
+    if (fileio::write_bmp(filename.c_str(), ctx.pixels, ctx.width, ctx.height) != 0)
     {
-        filename = std::string("Screenshot") + std::to_string(++index) + std::string(".bmp");
+        printf("Failed to write file: %s", filename.c_str());
+        return -1;
     }
 
-    fileio::write_bmp(filename.c_str(), ctx.pixels, ctx.width, ctx.height);
-    fileio::unload_mesh(&mesh);
     free(ctx.pixels);
 
     printf("Wrote file: %s \n", filename.c_str());

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "kdtree.h"
-#include "math.h"
 #include <algorithm>
 
 // Sources: 
@@ -42,13 +41,14 @@ namespace sr::utilities
 
         for (auto i = 0u; i < faces.size(); ++i)
         {
-            faces[i] = i;
+            // First index of every triangle
+            faces[i] = i * 3;
         }
 
         build_recursive(0u, mesh->bounds, faces.data(), (uint32_t)faces.size(), 1u);
     }
     
-    bool kdtree::raycast(const float* origin, const float* direction, raycasthit* hit) const
+    bool kdtree::raycast(const float3& origin, const float3& direction, raycasthit* hit) const
     {
         float tmin, tmax;
 
@@ -57,7 +57,7 @@ namespace sr::utilities
             return false;
         }
 
-        memoryBlock<stacknode> stack(1 + m_nodeCount / 6);
+        memoryblock<stacknode> stack(1u + m_depth);
         auto stackSize = 1u;
         stack[0u] = { 0u, tmin, tmax };
 
@@ -76,11 +76,11 @@ namespace sr::utilities
             {
                 auto tsplit = (node->offset - origin[flag]) / direction[flag];
                 auto first = index;
-                auto second = index + 1;
+                auto second = index + 1u;
 
                 if (node->offset - origin[flag] < 0.0f)
                 {
-                    first = index + 1;
+                    first = index + 1u;
                     second = index;
                 }
 
@@ -117,14 +117,14 @@ namespace sr::utilities
             for (auto i = 0u; i < range->indexCount; ++i)
             {
                 if (raycast_triangle(origin, direction,
-                    positions + indices[faceIndices[i] * 3 + 0] * 3,
-                    positions + indices[faceIndices[i] * 3 + 1] * 3,
-                    positions + indices[faceIndices[i] * 3 + 2] * 3,
+                    positions + indices[faceIndices[i] + 0] * 3,
+                    positions + indices[faceIndices[i] + 1] * 3,
+                    positions + indices[faceIndices[i] + 2] * 3,
                     &distance,
                     barycoords) && distance < hit->distance)
                 {
                     hit->distance = distance;
-                    hit->index = faceIndices[i] * 3;
+                    hit->index = faceIndices[i];
                     hit->uv[0] = barycoords[0];
                     hit->uv[1] = barycoords[1];
                 }
@@ -141,25 +141,28 @@ namespace sr::utilities
 
     bool kdtree::compute_split(const bounds& bounds, uint32_t* faces, uint32_t faceCount, float costThreshold, float* offset, uint32_t* axis)
     {
-        // Very performance inoptimal. (depending on the compiler) could cause big allocs on every node :/
+        // @TODO Very performance inoptimal. (depending on the compiler) could cause big allocs on every node :/
         std::vector<splitplane> planes[3]{};
         auto size = bounds.bmax - bounds.bmin;
         auto area = 2.0f * (size.x * size.y + size.y * size.z + size.z * size.x);
         auto minCost = 1.0e+38f;
 
+        // @TODO parameterize these or derive them from some other heuristic evaluation.
         const float costIntersect = 1.0f;
         const float costTraversal = 1.0f;
+
+        auto vpos = m_mesh->vertexPositions;
         
         for (auto i = 0u; i < faceCount; ++i)
         {
-            auto tri = m_mesh->indices + faces[i] * 3;
+            auto tri = m_mesh->indices + faces[i];
 
-            planes[0].push_back({ fmin(fmin(m_mesh->vertexPositions[tri[0] * 3 + 0], m_mesh->vertexPositions[tri[1] * 3 + 0]), m_mesh->vertexPositions[tri[2] * 3 + 0]), splitplane::FLAG_START });
-            planes[1].push_back({ fmin(fmin(m_mesh->vertexPositions[tri[0] * 3 + 1], m_mesh->vertexPositions[tri[1] * 3 + 1]), m_mesh->vertexPositions[tri[2] * 3 + 1]), splitplane::FLAG_START });
-            planes[2].push_back({ fmin(fmin(m_mesh->vertexPositions[tri[0] * 3 + 2], m_mesh->vertexPositions[tri[1] * 3 + 2]), m_mesh->vertexPositions[tri[2] * 3 + 2]), splitplane::FLAG_START });
-            planes[0].push_back({ fmax(fmax(m_mesh->vertexPositions[tri[0] * 3 + 0], m_mesh->vertexPositions[tri[1] * 3 + 0]), m_mesh->vertexPositions[tri[2] * 3 + 0]), splitplane::FLAG_END });
-            planes[1].push_back({ fmax(fmax(m_mesh->vertexPositions[tri[0] * 3 + 1], m_mesh->vertexPositions[tri[1] * 3 + 1]), m_mesh->vertexPositions[tri[2] * 3 + 1]), splitplane::FLAG_END });
-            planes[2].push_back({ fmax(fmax(m_mesh->vertexPositions[tri[0] * 3 + 2], m_mesh->vertexPositions[tri[1] * 3 + 2]), m_mesh->vertexPositions[tri[2] * 3 + 2]), splitplane::FLAG_END });
+            planes[0].push_back({ fmin(fmin(vpos[tri[0] * 3 + 0], vpos[tri[1] * 3 + 0]), vpos[tri[2] * 3 + 0]), splitplane::FLAG_START });
+            planes[1].push_back({ fmin(fmin(vpos[tri[0] * 3 + 1], vpos[tri[1] * 3 + 1]), vpos[tri[2] * 3 + 1]), splitplane::FLAG_START });
+            planes[2].push_back({ fmin(fmin(vpos[tri[0] * 3 + 2], vpos[tri[1] * 3 + 2]), vpos[tri[2] * 3 + 2]), splitplane::FLAG_START });
+            planes[0].push_back({ fmax(fmax(vpos[tri[0] * 3 + 0], vpos[tri[1] * 3 + 0]), vpos[tri[2] * 3 + 0]), splitplane::FLAG_END });
+            planes[1].push_back({ fmax(fmax(vpos[tri[0] * 3 + 1], vpos[tri[1] * 3 + 1]), vpos[tri[2] * 3 + 1]), splitplane::FLAG_END });
+            planes[2].push_back({ fmax(fmax(vpos[tri[0] * 3 + 2], vpos[tri[1] * 3 + 2]), vpos[tri[2] * 3 + 2]), splitplane::FLAG_END });
         }
 
         std::sort(planes[0].begin(), planes[0].end());
@@ -201,8 +204,8 @@ namespace sr::utilities
 
                 auto dl = planeOffset - bounds.bmin[i];
                 auto dr = bounds.bmax[i] - planeOffset;
-                auto v0 = size[(i + 1) % 3];
-                auto v1 = size[(i + 2) % 3];
+                auto v0 = size[(i + 1u) % 3u];
+                auto v1 = size[(i + 2u) % 3u];
 
                 auto areaL = 2.0f * (v0 * v1 + v0 * dl + v1 * dl);
                 auto areaR = 2.0f * (v0 * v1 + v0 * dr + v1 * dr);
@@ -255,10 +258,10 @@ namespace sr::utilities
         for (int32_t i = faceCount - 1; i >= 0; --i)
         {
             auto face = faces[i];
-            auto pos = m_mesh->vertexPositions;
+            auto vpos = m_mesh->vertexPositions;
             auto tri = m_mesh->indices;
-            auto pmin = fmin(fmin(pos[tri[face * 3 + 0] * 3 + axis], pos[tri[face * 3 + 1] * 3 + axis]), pos[tri[face * 3 + 2] * 3 + axis]);
-            auto pmax = fmax(fmax(pos[tri[face * 3 + 0] * 3 + axis], pos[tri[face * 3 + 1] * 3 + axis]), pos[tri[face * 3 + 2] * 3 + axis]);
+            auto pmin = fmin(fmin(vpos[tri[face + 0] * 3 + axis], vpos[tri[face + 1] * 3 + axis]), vpos[tri[face + 2] * 3 + axis]);
+            auto pmax = fmax(fmax(vpos[tri[face + 0] * 3 + axis], vpos[tri[face + 1] * 3 + axis]), vpos[tri[face + 2] * 3 + axis]);
 
             if (pmax > offset)
             {
@@ -274,14 +277,14 @@ namespace sr::utilities
         math::bounds bbl = bounds, bbr = bounds;
         bbl.bmax[axis] = bbr.bmin[axis] = offset;
 
-        m_nodeCount += 2;
+        auto firstChild = m_nodeCount;
+        m_nodeCount += 2u;
         m_nodes.validate(m_nodeCount);
-        auto firstChild = m_nodeCount - 2;
 
         auto node = m_nodes.get_offset(nodeIndex);
         node->data = (firstChild & INDEX_MASK) | (axis << FLAG_MASK_OFFS);
         node->offset = offset;
         build_recursive(firstChild, bbl, faces, faceCount, depth + 1u);
-        build_recursive(firstChild + 1, bbr, facesRight.data(), (uint32_t)facesRight.size(), depth + 1u);
+        build_recursive(firstChild + 1u, bbr, facesRight.data(), (uint32_t)facesRight.size(), depth + 1u);
     }
 }

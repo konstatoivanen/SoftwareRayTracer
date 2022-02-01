@@ -19,8 +19,22 @@ namespace sr::utilities::fileio
     }
 
 
+    std::string get_free_filename(const std::string& name, const std::string& extension)
+    {
+        auto index = 0;
+        std::string filename; 
+
+        do
+        {
+           filename = name + std::to_string(index++) + extension;
+        }
+        while (std::filesystem::exists(filename));
+
+        return filename;
+    }
+
     // Source: https://elcharolin.wordpress.com/2018/11/28/read-and-write-bmp-files-in-c-c/
-    void write_bmp(const char* filepath, unsigned char* pixels, uint32_t width, uint32_t height)
+    int write_bmp(const char* filepath, uint8_t* pixels, uint32_t width, uint32_t height)
     {
         const uint32_t BYTES_PER_PIXEL = 4u;
         const int32_t DATA_OFFSET_OFFSET = 0x000A;
@@ -40,7 +54,7 @@ namespace sr::utilities::fileio
     
             if (error != 0)
             {
-                return;
+                return -1;
             }
         #else
             file = fopen(filepath, "rb");
@@ -87,11 +101,11 @@ namespace sr::utilities::fileio
         for (uint32_t x = 0u; x < width; ++x)
         {
             uint32_t index = (x + y * width) * BYTES_PER_PIXEL;
-            unsigned char color[4] = { pixels[index + 2], pixels[index + 1], pixels[index + 0], pixels[index + 3] };
-            fwrite(color, sizeof(byte), 4, outputFile);
+            uint8_t color[4] = { pixels[index + 2], pixels[index + 1], pixels[index + 0], pixels[index + 3] };
+            fwrite(color, sizeof(uint8_t), 4, outputFile);
         }
 
-        fclose(outputFile);
+        return fclose(outputFile);
     }
 
     int load_config(const char* filepath, sr::structs::config* cfg)
@@ -155,6 +169,18 @@ namespace sr::utilities::fileio
             else if (strcmp(iter->second.c_str(), "random") == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_RANDOM;
+            }
+            else if (strcmp(iter->second.c_str(), "albedo") == 0)
+            {
+                cfg->mode = structs::SR_TRACE_MODE_ALBEDO;
+            }
+            else if (strcmp(iter->second.c_str(), "normals") == 0)
+            {
+                cfg->mode = structs::SR_TRACE_MODE_NORMALS;
+            }
+            else if (strcmp(iter->second.c_str(), "emission") == 0)
+            {
+                cfg->mode = structs::SR_TRACE_MODE_EMISSION;
             }
         }
 

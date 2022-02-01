@@ -17,13 +17,11 @@ namespace sr::utilities
     threadpool::~threadpool()
     {
         {
-            // Unblock any threads and tell them to stop
             std::unique_lock<std::mutex>l(m_lock);
             m_shutdown = true;
             m_conditional.notify_all();
         }
 
-        // Wait for all threads to stop
         for (auto& thread : m_threads)
         {
             thread.join();
@@ -32,11 +30,17 @@ namespace sr::utilities
 
     void threadpool::queue_job(std::function<void(void)> func)
     {
-        // Place a job on the queu and unblock a thread
         std::unique_lock <std::mutex> l(m_lock);
-
         m_jobs.emplace(std::move(func));
         m_conditional.notify_one();
+    }
+
+    void threadpool::wait_all(uint64_t queryInterval)
+    {
+        while(m_idleCount < m_threads.size())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(queryInterval));
+        }
     }
 
     void threadpool::thread_entry(uint32_t i)
@@ -50,7 +54,9 @@ namespace sr::utilities
     
                 while (!m_shutdown && m_jobs.empty())
                 {
+                    m_idleCount++;
                     m_conditional.wait(l);
+                    m_idleCount--;
                 }
     
                 if (m_jobs.empty())

@@ -7,6 +7,9 @@ namespace sr::structs
 {
     constexpr const static uint32_t SR_TRACE_MODE_RANDOM = 0u;
     constexpr const static uint32_t SR_TRACE_MODE_GGX = 1u;
+    constexpr const static uint32_t SR_TRACE_MODE_ALBEDO = 2u;
+    constexpr const static uint32_t SR_TRACE_MODE_NORMALS = 3u;
+    constexpr const static uint32_t SR_TRACE_MODE_EMISSION = 4u;
 
     struct config
     {
@@ -41,5 +44,27 @@ namespace sr::structs
         {
             return memcmp(reinterpret_cast<const void*>(this), reinterpret_cast<const void*>(&r), sizeof(indexset)) < 0;
         }
+    };
+
+    struct raycasthit
+    {
+        int32_t index = -1;
+        float distance = 1.0e+38f;
+        float uv[2]{};
+    };
+
+    struct surface
+    {
+        math::float3 position = math::SR_FLOAT3_ZERO;
+        math::float3 normal = math::SR_FLOAT3_ZERO;
+        math::float3 albedo = math::SR_FLOAT3_ZERO;
+        math::float3 emission = math::SR_FLOAT3_ZERO;
+        float roughness = 0.0f;
+    };
+
+    struct facerange
+    {
+        uint32_t firstIndex = 0u;
+        uint32_t indexCount = 0u;
     };
 }

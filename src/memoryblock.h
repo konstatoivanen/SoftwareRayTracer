@@ -5,15 +5,15 @@
 namespace sr::utilities
 {
     template<typename T>
-    class memoryBlock
+    class memoryblock
     {
         public:
-            memoryBlock(size_t count)
+            memoryblock(size_t count)
             {
                 validate(count);
             }
 
-            ~memoryBlock()
+            ~memoryblock()
             {
                 if (m_data != nullptr)
                 {
@@ -21,8 +21,8 @@ namespace sr::utilities
                 }
             }
 
-            memoryBlock(memoryBlock const&) = delete;
-            memoryBlock& operator=(memoryBlock const&) = delete;
+            memoryblock(memoryblock const&) = delete;
+            memoryblock& operator=(memoryblock const&) = delete;
 
             void validate(size_t count, bool discard = false)
             {
@@ -42,7 +42,7 @@ namespace sr::utilities
 
                 if (newbuffer == nullptr)
                 {
-                    throw std::runtime_error("Failed to allocate new buffer!");
+                    throw std::runtime_error("Failed to allocate a new buffer!");
                 }
 
                 if (m_data != nullptr)
@@ -62,19 +62,15 @@ namespace sr::utilities
             void clear() { memset(m_data, 0, sizeof(T) * m_count); }
 
             T* get_offset(size_t offset) { return reinterpret_cast<T*>(m_data) + offset; }
-
             T const* get_offset(size_t offset) const { return reinterpret_cast<const T*>(m_data) + offset; }
 
             T* get_data() { return reinterpret_cast<T*>(m_data); }
-
             T const* get_data() const { return reinterpret_cast<const T*>(m_data); }
 
             T& operator [](size_t i) { return reinterpret_cast<T*>(m_data)[i]; }
-
             T const& operator [](size_t i) const { return reinterpret_cast<const T*>(m_data)[i]; }
 
             operator T* () { return get_data(); }
-
             operator T const* () const { return get_data(); }
 
             constexpr size_t get_count() const { return m_count; }
