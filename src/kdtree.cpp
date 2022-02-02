@@ -51,16 +51,20 @@ namespace sr::utilities
     bool kdtree::raycast(const float3& origin, const float3& direction, raycasthit* hit) const
     {
         float tmin, tmax;
+        hit->index = -1;
 
         if (!intersect_bounds(m_mesh->bounds, origin, direction, &tmin, &tmax))
         {
             return false;
         }
 
-        // @TODO Nasty malloc per cast. Maybe implement a thread safe pool instead?
-        memoryblock<stacknode> stack(1u + m_depth);
+        // Stackoverflow here we go!
+        auto useHeap = m_depth > 16;
+        auto stackMemSize = m_depth * sizeof(stacknode);
+        auto stack = reinterpret_cast<stacknode*>(!useHeap ? alloca(stackMemSize) : malloc(stackMemSize));
         auto stackSize = 1u;
         stack[0u] = { 0u, tmin, tmax };
+
 
         while (stackSize > 0u)
         {
@@ -95,7 +99,6 @@ namespace sr::utilities
                 }
                 else
                 {
-                    stack.validate(stackSize + 1);
                     stack[stackSize++] = { second, tsplit, tmax };
                     nodeIndex = first;
                     tmax = tsplit;
@@ -112,7 +115,6 @@ namespace sr::utilities
             auto faceIndices = m_faces.get_offset(range->firstIndex);
             auto distance = 0.0f;
             float barycoords[2];
-            hit->index = -1;
             hit->distance = tmax;
 
             for (auto i = 0u; i < range->indexCount; ++i)
@@ -133,11 +135,16 @@ namespace sr::utilities
 
             if (hit->index != -1)
             {
-                return true;
+                break;
             }
         }
 
-        return false;
+        if (useHeap)
+        {
+            free(stack);
+        }
+
+        return hit->index != -1;
     }
 
     bool kdtree::compute_split(const bounds& bounds, uint32_t* faces, uint32_t faceCount, float costThreshold, float* offset, uint32_t* axis)
@@ -170,9 +177,18 @@ namespace sr::utilities
         std::sort(planes[1].begin(), planes[1].end());
         std::sort(planes[2].begin(), planes[2].end());
 
+        uint32_t minL = 0u, minR = 0u;
+
         for (auto i = 0u; i < 3; ++i)
         {
             uint32_t countL = 0u, countR = faceCount, flag = 0u;
+            auto extent = fmin(size[i], planes[i].back().offset - planes[i][0].offset);
+
+            // Axis is planar. Skipping as splitting will likely lead to a lot of duplicated face ids.
+            if (extent < 1.0e-4f)
+            {
+                continue;
+            }
 
             for (auto j = 0u; j < faceCount * 2u; ++j)
             {
@@ -219,11 +235,13 @@ namespace sr::utilities
                     minCost = cost;
                     *offset = planeOffset;
                     *axis = i;
+                    minR = countR;
+                    minL = countL;
                 }
             }
         }
 
-        return minCost > costThreshold;
+        return minR != 0 && minL != 0 && minCost > costThreshold;
     }
     
     void kdtree::build_recursive(uint32_t nodeIndex, const bounds& bounds, uint32_t* faces, uint32_t faceCount, uint32_t depth)

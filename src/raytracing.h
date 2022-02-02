@@ -21,15 +21,16 @@ namespace sr::raytracing
         tracejobptr job = nullptr;
     };
 
-
+    const char* get_ray_trace_job_name(uint32_t mode);
     tracejobptr get_ray_trace_job(uint32_t mode);
+
     void ray_trace_warp(const raytracecontext& ctx, uint32_t xmin, uint32_t ymin, uint32_t xmax, uint32_t ymax);
+
     math::float3 ray_trace_job_ggx(const utilities::kdtree* tree, const math::float3& view, const structs::surface& surf, uint32_t samples, uint32_t bounces);
     math::float3 ray_trace_job_random(const utilities::kdtree* tree, const math::float3& view, const structs::surface& surf, uint32_t samples, uint32_t bounces);
     math::float3 ray_trace_job_normals(const utilities::kdtree* tree, const math::float3& view, const structs::surface& surf, uint32_t samples, uint32_t bounces);
     math::float3 ray_trace_job_albedo(const utilities::kdtree* tree, const math::float3& view, const structs::surface& surf, uint32_t samples, uint32_t bounces);
     math::float3 ray_trace_job_emission(const utilities::kdtree* tree, const math::float3& view, const structs::surface& surf, uint32_t samples, uint32_t bounces);
-
 
     math::float3 ray_gather_ggx_recursive(const utilities::kdtree* tree,
                                           const math::float3& view,

@@ -35,14 +35,6 @@ namespace sr::utilities
         m_conditional.notify_one();
     }
 
-    void threadpool::wait_all(uint64_t queryInterval)
-    {
-        while(m_idleCount < m_threads.size())
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(queryInterval));
-        }
-    }
-
     void threadpool::thread_entry(uint32_t i)
     {
         std::function <void(void)> job;
@@ -54,9 +46,7 @@ namespace sr::utilities
     
                 while (!m_shutdown && m_jobs.empty())
                 {
-                    m_idleCount++;
                     m_conditional.wait(l);
-                    m_idleCount--;
                 }
     
                 if (m_jobs.empty())

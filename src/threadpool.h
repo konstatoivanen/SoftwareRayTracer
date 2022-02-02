@@ -16,7 +16,6 @@ namespace sr::utilities
             threadpool& operator=(threadpool const&) = delete;
 
             void queue_job(std::function<void(void)> func);
-            void wait_all(uint64_t queryInterval = 0ul);
 
         private:
             void thread_entry(uint32_t i);
@@ -25,7 +24,6 @@ namespace sr::utilities
             std::condition_variable m_conditional;
             std::queue<std::function<void(void)>> m_jobs;
             std::vector<std::thread> m_threads;
-            std::atomic<uint32_t> m_idleCount;
             bool m_shutdown = false;
     };
 }

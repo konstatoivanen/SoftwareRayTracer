@@ -13,7 +13,7 @@ namespace sr::utilities
     class kdtree
     {
         public:
-            kdtree(const structs::mesh* mesh);
+            explicit kdtree(const structs::mesh* mesh);
             kdtree(kdtree const&) = delete;
             kdtree& operator=(kdtree const&) = delete;
 
@@ -21,6 +21,9 @@ namespace sr::utilities
         
             constexpr const structs::mesh* get_mesh() const { return m_mesh; }
             constexpr const uint32_t get_node_count() const { return m_nodeCount; }
+            constexpr const uint32_t get_branch_count() const { return m_nodeCount - m_faceRangeCount; }
+            constexpr const uint32_t get_leaf_count() const { return m_faceRangeCount; }
+            constexpr const uint32_t get_face_count() const { return m_faceCount; }
             constexpr const uint32_t get_depth() const { return m_depth; }
 
         private:

@@ -5,18 +5,24 @@
 
 namespace sr::structs
 {
-    constexpr const static uint32_t SR_TRACE_MODE_RANDOM = 0u;
-    constexpr const static uint32_t SR_TRACE_MODE_GGX = 1u;
-    constexpr const static uint32_t SR_TRACE_MODE_ALBEDO = 2u;
-    constexpr const static uint32_t SR_TRACE_MODE_NORMALS = 3u;
-    constexpr const static uint32_t SR_TRACE_MODE_EMISSION = 4u;
+    constexpr const uint32_t SR_TRACE_MODE_RANDOM = 0u;
+    constexpr const uint32_t SR_TRACE_MODE_GGX = 1u;
+    constexpr const uint32_t SR_TRACE_MODE_ALBEDO = 2u;
+    constexpr const uint32_t SR_TRACE_MODE_NORMALS = 3u;
+    constexpr const uint32_t SR_TRACE_MODE_EMISSION = 4u;
+
+    constexpr const char* SR_TRACE_MODE_STR_RANDOM = "random";
+    constexpr const char* SR_TRACE_MODE_STR_GGX = "ggx";
+    constexpr const char* SR_TRACE_MODE_STR_ALBEDO = "albedo";
+    constexpr const char* SR_TRACE_MODE_STR_NORMALS = "normals";
+    constexpr const char* SR_TRACE_MODE_STR_EMISSION = "emission";
 
     struct config
     {
         std::string meshPath = "";
         uint32_t width = 256u;
         uint32_t height = 256u;
-        uint32_t groupSize = 4u;
+        uint32_t warpSize = 4u;
         uint32_t samples = 1024u;
         uint32_t bounces = 2u;
         uint32_t mode = SR_TRACE_MODE_RANDOM;

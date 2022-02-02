@@ -76,5 +76,7 @@
     <None Include=".gitignore" />
     <None Include="LICENSE" />
     <None Include="README.md" />
+    <None Include="res\sponza.mdl" />
+    <None Include="res\sponza.mtl" />
   </ItemGroup>
 </Project>

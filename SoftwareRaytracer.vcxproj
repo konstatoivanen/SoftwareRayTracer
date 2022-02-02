@@ -193,6 +193,8 @@
     <None Include="README.md" />
     <None Include="res\config.cfg" />
     <None Include="res\cornell-box.mtl" />
+    <None Include="res\sponza.mtl" />
+    <None Include="res\sponza.mdl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\cornell-box.mdl">

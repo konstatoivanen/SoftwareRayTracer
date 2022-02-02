@@ -149,8 +149,8 @@ namespace sr::utilities::fileio
         iter = valuemap.find("height");
         cfg->height = iter != valuemap.end() ? std::stoul(iter->second) : 256u;
 
-        iter = valuemap.find("groupSize");
-        cfg->groupSize = iter != valuemap.end() ? std::stoul(iter->second) : 4u;
+        iter = valuemap.find("warpSize");
+        cfg->warpSize = iter != valuemap.end() ? std::stoul(iter->second) : 4u;
 
         iter = valuemap.find("samples");
         cfg->samples = iter != valuemap.end() ? std::stoul(iter->second) : 1024u;
@@ -162,23 +162,23 @@ namespace sr::utilities::fileio
 
         if (iter != valuemap.end())
         {
-            if (strcmp(iter->second.c_str(), "ggx") == 0)
+            if (strcmp(iter->second.c_str(), structs::SR_TRACE_MODE_STR_GGX) == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_GGX;
             }
-            else if (strcmp(iter->second.c_str(), "random") == 0)
+            else if (strcmp(iter->second.c_str(), structs::SR_TRACE_MODE_STR_RANDOM) == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_RANDOM;
             }
-            else if (strcmp(iter->second.c_str(), "albedo") == 0)
+            else if (strcmp(iter->second.c_str(), structs::SR_TRACE_MODE_STR_ALBEDO) == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_ALBEDO;
             }
-            else if (strcmp(iter->second.c_str(), "normals") == 0)
+            else if (strcmp(iter->second.c_str(), structs::SR_TRACE_MODE_STR_NORMALS) == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_NORMALS;
             }
-            else if (strcmp(iter->second.c_str(), "emission") == 0)
+            else if (strcmp(iter->second.c_str(), structs::SR_TRACE_MODE_STR_EMISSION) == 0)
             {
                 cfg->mode = structs::SR_TRACE_MODE_EMISSION;
             }
@@ -264,8 +264,9 @@ namespace sr::utilities::fileio
                 indices.push_back(index);
                 indexmap[triKey] = index++;
                 
-                auto albedo = materials[materialIds[i / 3]].diffuse;
-                auto emission = materials[materialIds[i / 3]].emission;
+                auto materialId = materialIds[j / 3];
+                auto albedo = materials[materialId].diffuse;
+                auto emission = materials[materialId].emission;
 
                 for (uint32_t k = 0u; k < 3; ++k)
                 {

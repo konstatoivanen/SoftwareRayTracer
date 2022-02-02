@@ -7,6 +7,20 @@ namespace sr::raytracing
     using namespace sr::utilities;
     using namespace sr::structs;
 
+    const char* get_ray_trace_job_name(uint32_t mode)
+    {
+        switch (mode)
+        {
+            case SR_TRACE_MODE_GGX: return SR_TRACE_MODE_STR_GGX;
+            case SR_TRACE_MODE_RANDOM: return SR_TRACE_MODE_STR_RANDOM;
+            case SR_TRACE_MODE_ALBEDO: return SR_TRACE_MODE_STR_ALBEDO;
+            case SR_TRACE_MODE_NORMALS: return SR_TRACE_MODE_STR_NORMALS;
+            case SR_TRACE_MODE_EMISSION: return SR_TRACE_MODE_STR_EMISSION;
+        }
+
+        return nullptr;
+    }
+
     tracejobptr get_ray_trace_job(uint32_t mode)
     {
         switch (mode)
